@@ -45,7 +45,7 @@ router.get('/pair', async (req, res) => {
                 },
                 printQRInTerminal: false,
                 logger: pino({ level: 'fatal' }),
-                browser: Browsers.ubuntu('Chrome'),
+                browser: ['ITACHI-XMD', 'Chrome', '3.0'],
                 syncFullHistory: false,
             });
 
