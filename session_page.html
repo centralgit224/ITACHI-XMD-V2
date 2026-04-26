@@ -3,47 +3,45 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ITACHI-XMD | Session</title>
+  <title>ITACHI-XMD | Session Generator</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
 
     :root {
-      --blue: #3B82F6;
-      --blue-bright: #60A5FA;
-      --blue-glow: rgba(59,130,246,0.3);
-      --bg: #050B18;
-      --bg2: #080F1F;
-      --bg3: #0D1628;
-      --card: rgba(13,22,40,0.8);
-      --border: rgba(59,130,246,0.15);
-      --border2: rgba(59,130,246,0.3);
-      --text: #F0F6FF;
-      --muted: #6B7FA3;
+      --orange: #FF6B00;
+      --orange-light: #FF8C33;
+      --orange-glow: rgba(255,107,0,0.35);
+      --bg: #0A0A0A;
+      --bg-card: #111111;
+      --bg-elevated: #181818;
+      --border: rgba(255,107,0,0.18);
+      --text: #F0F0F0;
+      --muted: #777;
     }
 
     body {
-      font-family: 'Inter', sans-serif;
+      font-family: 'Rajdhani', sans-serif;
       background: var(--bg);
       color: var(--text);
       min-height: 100vh;
       overflow-x: hidden;
     }
 
-    /* Background */
     body::before {
       content: '';
       position: fixed;
       inset: 0;
-      background:
-        radial-gradient(ellipse 80% 50% at 50% -20%, rgba(59,130,246,0.12), transparent),
-        radial-gradient(ellipse 60% 40% at 80% 80%, rgba(29,78,216,0.08), transparent);
+      background-image:
+        linear-gradient(rgba(255,107,0,0.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,107,0,0.025) 1px, transparent 1px);
+      background-size: 40px 40px;
       pointer-events: none;
       z-index: 0;
     }
 
-    /* NAVBAR */
+    /* ── NAVBAR ── */
     .nav {
       position: fixed;
       top: 0; left: 0; right: 0;
@@ -51,8 +49,8 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 14px 24px;
-      background: rgba(5,11,24,0.9);
+      padding: 14px 28px;
+      background: rgba(10,10,10,0.92);
       backdrop-filter: blur(20px);
       border-bottom: 1px solid var(--border);
     }
@@ -61,543 +59,671 @@
       display: flex;
       align-items: center;
       gap: 10px;
+      cursor: pointer;
     }
 
-    .nav-icon {
-      width: 36px; height: 36px;
-      background: var(--blue);
-      border-radius: 10px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1.1rem;
+    .nav-avatar {
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      border: 2px solid var(--orange);
+      object-fit: cover;
     }
 
     .nav-name {
-      font-family: 'Space Grotesk', sans-serif;
-      font-weight: 700;
-      font-size: 1.1rem;
-      color: var(--blue-bright);
+      font-family: 'Orbitron', monospace;
+      font-weight: 900;
+      font-size: 1rem;
+      letter-spacing: 2px;
     }
+    .nav-name span { color: var(--orange); }
 
-    .nav-menu {
-      width: 38px; height: 38px;
-      border: 1px solid var(--border2);
-      border-radius: 8px;
-      background: transparent;
-      color: var(--text);
-      cursor: pointer;
+    .nav-btn {
       display: flex;
       align-items: center;
-      justify-content: center;
-      font-size: 1.1rem;
+      gap: 7px;
+      padding: 9px 20px;
+      background: var(--orange);
+      color: #000;
+      font-family: 'Orbitron', monospace;
+      font-weight: 700;
+      font-size: 0.7rem;
+      letter-spacing: 1px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.2s;
     }
+    .nav-btn:hover { background: var(--orange-light); box-shadow: 0 0 18px var(--orange-glow); }
 
-    /* PAGES */
+    /* ── PAGES ── */
     .page { display: none; }
     .page.active {
       display: block;
       position: relative;
       z-index: 1;
-      padding: 100px 20px 60px;
-      max-width: 480px;
-      margin: 0 auto;
     }
 
-    /* HOME PAGE */
+    /* ── HOME PAGE ── */
+    #page-home {
+      padding-top: 70px;
+    }
+
+    /* Hero */
     .hero {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
       text-align: center;
-      padding: 40px 0 48px;
+      padding: 60px 24px 48px;
+      gap: 0;
     }
 
-    .hero-avatar {
-      width: 100px; height: 100px;
-      border-radius: 50%;
-      background: linear-gradient(135deg, #1e40af, #3b82f6);
-      margin: 0 auto 20px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 2.5rem;
-      box-shadow: 0 0 40px rgba(59,130,246,0.3);
+    /* Bot image card */
+    .bot-card-wrap {
+      position: relative;
+      width: 220px;
+      margin-bottom: 20px;
+    }
+
+    .bot-card {
+      width: 220px;
+      height: 280px;
+      border-radius: 16px;
+      overflow: hidden;
+      border: 2px solid rgba(255,107,0,0.3);
+      box-shadow: 0 0 40px rgba(255,107,0,0.15);
       position: relative;
     }
 
-    .hero-avatar::after {
-      content: '🔑';
+    .bot-card img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: top;
+    }
+
+    .bot-card-label {
       position: absolute;
-      bottom: 0; right: 0;
-      width: 30px; height: 30px;
-      background: #1e3a8a;
-      border-radius: 50%;
-      border: 2px solid var(--bg);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 0.85rem;
-    }
-
-    .hero h1 {
-      font-family: 'Space Grotesk', sans-serif;
-      font-size: 2rem;
+      bottom: 0; left: 0; right: 0;
+      padding: 12px;
+      background: linear-gradient(transparent, rgba(0,0,0,0.85));
+      font-family: 'Orbitron', monospace;
+      font-size: 0.7rem;
       font-weight: 700;
-      color: var(--blue-bright);
-      margin-bottom: 10px;
+      letter-spacing: 2px;
+      color: var(--orange);
+      text-align: center;
     }
 
-    .hero p {
-      color: var(--muted);
-      font-size: 0.95rem;
-      line-height: 1.6;
+    /* Glow ring around image */
+    .bot-card-wrap::before {
+      content: '';
+      position: absolute;
+      inset: -8px;
+      border-radius: 22px;
+      background: radial-gradient(ellipse at center, rgba(255,107,0,0.12), transparent 70%);
+      pointer-events: none;
     }
 
-    .hero-btns {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      margin-top: 32px;
-    }
-
-    .btn-main {
-      width: 100%;
-      padding: 16px;
-      background: var(--blue);
-      color: #fff;
-      font-weight: 600;
-      font-size: 0.95rem;
-      border: none;
-      border-radius: 12px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      transition: all 0.2s;
-    }
-    .btn-main:hover { background: #2563eb; transform: translateY(-1px); box-shadow: 0 8px 25px var(--blue-glow); }
-
-    .btn-outline {
-      width: 100%;
-      padding: 16px;
-      background: var(--bg3);
-      color: var(--text);
-      font-weight: 600;
-      font-size: 0.95rem;
-      border: 1px solid var(--border2);
-      border-radius: 12px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      transition: all 0.2s;
-    }
-    .btn-outline:hover { border-color: var(--blue); color: var(--blue-bright); }
-
-    /* STEPS SECTION */
-    .steps-section {
-      margin-top: 48px;
-    }
-
-    .section-badge {
+    /* Status badge */
+    .status-badge {
       display: inline-flex;
       align-items: center;
-      gap: 6px;
-      padding: 6px 14px;
-      background: rgba(59,130,246,0.08);
-      border: 1px solid var(--border2);
+      gap: 7px;
+      padding: 5px 14px;
+      background: rgba(255,107,0,0.08);
+      border: 1px solid rgba(255,107,0,0.3);
       border-radius: 20px;
-      font-size: 0.75rem;
+      font-size: 0.72rem;
       font-weight: 600;
-      color: var(--blue-bright);
-      margin-bottom: 16px;
-    }
-
-    .section-title {
-      font-family: 'Space Grotesk', sans-serif;
-      font-size: 1.6rem;
-      font-weight: 700;
-      color: var(--blue-bright);
+      letter-spacing: 2px;
+      color: var(--orange);
       margin-bottom: 8px;
     }
 
-    .section-sub {
+    .status-dot {
+      width: 7px; height: 7px;
+      background: #00C864;
+      border-radius: 50%;
+      animation: blink 1.5s ease-in-out infinite;
+    }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+    /* Session generator label */
+    .session-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 12px;
+      background: rgba(255,107,0,0.06);
+      border: 1px solid rgba(255,107,0,0.2);
+      border-radius: 20px;
+      font-size: 0.65rem;
+      font-weight: 600;
+      letter-spacing: 3px;
+      color: var(--orange);
+      text-transform: uppercase;
+      margin-bottom: 16px;
+    }
+
+    .hero-title {
+      font-family: 'Orbitron', monospace;
+      font-size: clamp(2.8rem, 10vw, 5rem);
+      font-weight: 900;
+      letter-spacing: 4px;
+      line-height: 1;
+      margin-bottom: 6px;
+    }
+    .hero-title span { color: var(--orange); }
+
+    .hero-sub {
+      font-family: 'Orbitron', monospace;
+      font-size: 0.75rem;
       color: var(--muted);
-      font-size: 0.9rem;
-      margin-bottom: 24px;
+      letter-spacing: 3px;
+      margin-bottom: 16px;
+    }
+
+    .hero-desc {
+      max-width: 480px;
+      font-size: 1rem;
+      color: #aaa;
+      line-height: 1.6;
+      margin-bottom: 28px;
+    }
+    .hero-desc strong { color: var(--text); }
+
+    .hero-btns {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .btn-primary {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 14px 32px;
+      background: var(--orange);
+      color: #000;
+      font-family: 'Orbitron', monospace;
+      font-weight: 700;
+      font-size: 0.75rem;
+      letter-spacing: 1.5px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.2s;
+      text-transform: uppercase;
+    }
+    .btn-primary:hover { background: var(--orange-light); box-shadow: 0 6px 25px var(--orange-glow); transform: translateY(-1px); }
+
+    .btn-secondary {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 14px 32px;
+      background: transparent;
+      color: var(--text);
+      font-family: 'Orbitron', monospace;
+      font-weight: 700;
+      font-size: 0.75rem;
+      letter-spacing: 1.5px;
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 8px;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.2s;
+      text-transform: uppercase;
+    }
+    .btn-secondary:hover { border-color: var(--orange); color: var(--orange); }
+
+    /* ── STATS ── */
+    .stats {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      justify-content: center;
+      gap: 60px;
+      flex-wrap: wrap;
+      padding: 36px 24px;
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      margin: 0 24px;
+    }
+
+    .stat { text-align: center; }
+    .stat-value {
+      font-family: 'Orbitron', monospace;
+      font-size: 2.2rem;
+      font-weight: 900;
+      color: var(--orange);
+      line-height: 1;
+    }
+    .stat-label {
+      font-size: 0.65rem;
+      letter-spacing: 2px;
+      color: var(--muted);
+      text-transform: uppercase;
+      margin-top: 5px;
+    }
+
+    /* ── SECTIONS ── */
+    .section {
+      position: relative;
+      z-index: 1;
+      padding: 70px 24px;
+      max-width: 860px;
+      margin: 0 auto;
+    }
+
+    .section-label {
+      font-size: 0.62rem;
+      font-weight: 600;
+      letter-spacing: 4px;
+      color: var(--orange);
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+
+    .section-title {
+      font-family: 'Orbitron', monospace;
+      font-size: clamp(1.6rem, 5vw, 2.4rem);
+      font-weight: 900;
+      margin-bottom: 10px;
+    }
+
+    .section-desc { color: var(--muted); font-size: 0.95rem; margin-bottom: 40px; }
+
+    /* Steps grid */
+    .steps-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
     }
 
     .step-card {
-      background: var(--card);
+      background: var(--bg-card);
       border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 24px;
-      margin-bottom: 16px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      text-align: center;
-      gap: 14px;
-      transition: border-color 0.2s;
+      border-radius: 12px;
+      padding: 24px 20px;
+      position: relative;
+      transition: all 0.25s;
     }
-    .step-card:hover { border-color: var(--border2); }
-
-    .step-icon-box {
-      width: 56px; height: 56px;
-      background: var(--blue);
-      border-radius: 14px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1.5rem;
-      box-shadow: 0 4px 15px var(--blue-glow);
-    }
+    .step-card:hover { border-color: var(--orange); transform: translateY(-3px); box-shadow: 0 10px 30px rgba(255,107,0,0.08); }
 
     .step-num {
-      font-family: 'Space Grotesk', sans-serif;
+      position: absolute;
+      top: -12px; right: 16px;
+      font-family: 'Orbitron', monospace;
       font-size: 1.8rem;
-      font-weight: 700;
-      color: var(--blue);
+      font-weight: 900;
+      color: rgba(255,107,0,0.12);
+      line-height: 1;
     }
 
+    .step-icon { font-size: 1.8rem; margin-bottom: 14px; }
     .step-title {
+      font-family: 'Orbitron', monospace;
+      font-size: 0.82rem;
       font-weight: 700;
-      font-size: 1rem;
-      margin-bottom: 4px;
+      margin-bottom: 8px;
+      letter-spacing: 0.5px;
+    }
+    .step-desc { color: var(--muted); font-size: 0.88rem; line-height: 1.6; }
+
+    /* ── GENERATOR CARD ── */
+    #session-section {
+      padding-top: 0;
+      max-width: 680px;
     }
 
-    .step-desc { color: var(--muted); font-size: 0.88rem; line-height: 1.5; }
-
-    /* FEATURES */
-    .features { margin-top: 48px; }
-
-    .feature-card {
-      background: var(--card);
+    .gen-card {
+      background: var(--bg-card);
       border: 1px solid var(--border);
       border-radius: 16px;
-      padding: 20px;
-      margin-bottom: 12px;
+      overflow: hidden;
     }
 
-    .feature-icon {
-      width: 44px; height: 44px;
-      background: var(--blue);
-      border-radius: 12px;
+    .gen-card-header {
+      padding: 16px 24px;
+      background: rgba(255,107,0,0.04);
+      border-bottom: 1px solid var(--border);
       display: flex;
       align-items: center;
-      justify-content: center;
-      font-size: 1.2rem;
-      margin-bottom: 14px;
+      gap: 10px;
     }
 
-    .feature-title { font-weight: 700; margin-bottom: 6px; }
-    .feature-desc { color: var(--muted); font-size: 0.88rem; line-height: 1.5; }
+    .gen-dot {
+      width: 7px; height: 7px;
+      background: var(--orange);
+      border-radius: 50%;
+      animation: blink 1.5s ease-in-out infinite;
+    }
 
-    /* GET SESSION BTN */
-    .get-session-btn {
-      width: 100%;
-      padding: 16px;
-      background: var(--blue);
-      color: #fff;
-      font-weight: 600;
-      font-size: 0.95rem;
-      border: none;
-      border-radius: 12px;
-      cursor: pointer;
+    .gen-title {
+      font-family: 'Orbitron', monospace;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 2px;
+      color: var(--orange);
+    }
+
+    .gen-body { padding: 28px 24px; }
+
+    /* Tabs */
+    .tabs {
       display: flex;
-      align-items: center;
-      justify-content: center;
       gap: 8px;
-      margin-top: 32px;
+      margin-bottom: 24px;
+    }
+
+    .tab {
+      flex: 1;
+      padding: 11px;
+      font-family: 'Orbitron', monospace;
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-align: center;
+      border-radius: 8px;
+      cursor: pointer;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      background: transparent;
       transition: all 0.2s;
     }
-    .get-session-btn:hover { background: #2563eb; box-shadow: 0 8px 25px var(--blue-glow); }
+    .tab.active { background: var(--orange); color: #000; border-color: var(--orange); }
+    .tab:not(.active):hover { border-color: var(--orange); color: var(--orange); }
 
-    /* ── PAIR / QR PAGES ── */
-    .page-header {
-      text-align: center;
-      padding: 20px 0 32px;
-    }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
 
-    .page-avatar {
-      width: 80px; height: 80px;
-      border-radius: 50%;
-      background: linear-gradient(135deg, #1e40af, #3b82f6);
-      margin: 0 auto 16px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 2rem;
-      box-shadow: 0 0 30px rgba(59,130,246,0.3);
-      position: relative;
-    }
-
-    .page-avatar .badge {
-      position: absolute;
-      bottom: 0; right: 0;
-      width: 26px; height: 26px;
-      background: #1e3a8a;
-      border-radius: 50%;
-      border: 2px solid var(--bg);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 0.75rem;
-    }
-
-    .page-title {
-      font-family: 'Space Grotesk', sans-serif;
-      font-size: 1.6rem;
-      font-weight: 700;
-      color: var(--blue-bright);
-      margin-bottom: 6px;
-    }
-
-    .page-sub { color: var(--muted); font-size: 0.9rem; }
-
-    /* Form card */
-    .form-card {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 20px;
-      padding: 28px 24px;
-    }
-
+    /* Form */
     .form-label {
       display: block;
-      font-size: 0.72rem;
-      font-weight: 600;
-      letter-spacing: 1px;
+      font-size: 0.65rem;
+      letter-spacing: 2px;
       color: var(--muted);
       text-transform: uppercase;
-      margin-bottom: 10px;
+      margin-bottom: 8px;
     }
 
     .input-wrap {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      background: var(--bg3);
+      width: 100%;
+      padding: 13px 16px;
+      background: var(--bg-elevated);
       border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 14px 16px;
-      margin-bottom: 20px;
-      transition: border-color 0.2s;
-    }
-    .input-wrap:focus-within { border-color: var(--blue); }
-
-    .input-wrap span { color: var(--muted); font-size: 1.1rem; }
-
-    .input-wrap input {
-      flex: 1;
-      background: transparent;
-      border: none;
-      outline: none;
+      border-radius: 8px;
       color: var(--text);
+      font-family: 'Rajdhani', sans-serif;
       font-size: 1rem;
-      font-family: 'Inter', sans-serif;
+      font-weight: 500;
+      outline: none;
+      transition: border-color 0.2s;
+      margin-bottom: 18px;
     }
-    .input-wrap input::placeholder { color: var(--muted); }
+    .input-wrap::placeholder { color: #444; }
+    .input-wrap:focus { border-color: var(--orange); box-shadow: 0 0 0 2px rgba(255,107,0,0.08); }
 
     /* Session type */
-    .type-label {
-      font-size: 0.72rem;
-      font-weight: 600;
-      letter-spacing: 1px;
-      color: var(--muted);
-      text-transform: uppercase;
-      margin-bottom: 10px;
-    }
-
-    .type-toggle {
+    .type-row {
       display: flex;
       gap: 8px;
-      background: var(--bg3);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 4px;
-      margin-bottom: 24px;
+      margin-bottom: 20px;
     }
 
     .type-btn {
       flex: 1;
       padding: 11px;
-      border: none;
-      border-radius: 9px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--muted);
+      font-family: 'Rajdhani', sans-serif;
       font-weight: 600;
       font-size: 0.9rem;
       cursor: pointer;
+      text-align: center;
       transition: all 0.2s;
-      background: transparent;
-      color: var(--muted);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
     }
-    .type-btn.active { background: var(--blue); color: #fff; }
+    .type-btn.active { background: rgba(255,107,0,0.08); border-color: var(--orange); color: var(--orange); }
+    .type-btn:not(.active):hover { border-color: rgba(255,107,0,0.4); }
 
     .submit-btn {
       width: 100%;
       padding: 16px;
-      background: var(--blue);
-      color: #fff;
+      background: var(--orange);
+      color: #000;
+      font-family: 'Orbitron', monospace;
       font-weight: 700;
-      font-size: 0.95rem;
+      font-size: 0.8rem;
+      letter-spacing: 2px;
       border: none;
-      border-radius: 12px;
+      border-radius: 8px;
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
       gap: 8px;
-      transition: all 0.2s;
+      transition: all 0.25s;
     }
-    .submit-btn:hover { background: #2563eb; box-shadow: 0 8px 25px var(--blue-glow); }
+    .submit-btn:hover { background: var(--orange-light); box-shadow: 0 0 25px var(--orange-glow); }
     .submit-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
-    .switch-link {
-      text-align: center;
-      margin-top: 20px;
-      color: var(--muted);
-      font-size: 0.88rem;
-    }
-    .switch-link a { color: var(--blue-bright); cursor: pointer; text-decoration: none; font-weight: 500; }
-    .switch-link a:hover { text-decoration: underline; }
-
-    /* Pair code display */
+    /* Code display */
     .code-display {
       display: none;
+      margin-top: 20px;
+      padding: 20px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: 10px;
       text-align: center;
-      margin-top: 24px;
-      padding: 24px;
-      background: var(--bg3);
-      border: 1px solid var(--border2);
-      border-radius: 16px;
     }
     .code-display.show { display: block; }
 
     .code-label {
-      font-size: 0.72rem;
-      font-weight: 600;
-      letter-spacing: 1px;
-      color: var(--blue-bright);
+      font-size: 0.62rem;
+      letter-spacing: 2px;
+      color: var(--orange);
       text-transform: uppercase;
-      margin-bottom: 14px;
-    }
-
-    .code-value {
-      font-family: 'Space Grotesk', sans-serif;
-      font-size: 2.2rem;
-      font-weight: 700;
-      letter-spacing: 6px;
-      color: var(--text);
-      padding: 16px;
-      background: var(--bg);
-      border-radius: 10px;
-      border: 1px solid var(--border);
       margin-bottom: 12px;
     }
 
-    .code-hint {
-      color: var(--muted);
-      font-size: 0.85rem;
-      line-height: 1.6;
+    .code-value {
+      font-family: 'Orbitron', monospace;
+      font-size: 2rem;
+      font-weight: 900;
+      letter-spacing: 6px;
+      color: var(--text);
+      padding: 14px;
+      background: var(--bg);
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      margin-bottom: 10px;
     }
 
-    /* Success state */
+    .code-hint { color: var(--muted); font-size: 0.85rem; line-height: 1.6; }
+
+    /* Success */
     .success-box {
       display: none;
+      margin-top: 16px;
+      padding: 20px;
+      background: rgba(0,200,100,0.06);
+      border: 1px solid rgba(0,200,100,0.25);
+      border-radius: 10px;
       text-align: center;
-      margin-top: 20px;
-      padding: 24px;
-      background: rgba(16,185,129,0.08);
-      border: 1px solid rgba(16,185,129,0.3);
-      border-radius: 16px;
     }
     .success-box.show { display: block; }
-    .success-icon { font-size: 2.5rem; margin-bottom: 12px; }
-    .success-title { font-weight: 700; font-size: 1.1rem; color: #10b981; margin-bottom: 6px; }
-    .success-desc { color: var(--muted); font-size: 0.88rem; line-height: 1.6; }
-
-    /* QR area */
-    .qr-wrap {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 16px;
-      margin-bottom: 20px;
-    }
-
-    .qr-box {
-      width: 200px; height: 200px;
-      background: var(--bg3);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      overflow: hidden;
-      position: relative;
-    }
-
-    .qr-box img {
-      width: 100%; height: 100%;
-      object-fit: contain;
-      border-radius: 16px;
-    }
-
-    .qr-placeholder-icon { font-size: 3rem; color: var(--muted); }
-
-    .scan-line {
-      position: absolute;
-      left: 0; right: 0; height: 2px;
-      background: linear-gradient(90deg, transparent, var(--blue), transparent);
-      animation: scan 2s linear infinite;
-    }
-    @keyframes scan { 0%{top:0} 100%{top:100%} }
-
-    .qr-hint { color: var(--muted); font-size: 0.88rem; text-align: center; line-height: 1.5; }
+    .success-title { font-weight: 700; color: #00C864; margin-bottom: 4px; }
+    .success-desc { color: var(--muted); font-size: 0.88rem; }
 
     /* Error */
     .err-box {
       display: none;
       margin-top: 12px;
       padding: 12px 16px;
-      background: rgba(239,68,68,0.08);
-      border: 1px solid rgba(239,68,68,0.3);
-      border-radius: 10px;
-      color: #f87171;
+      background: rgba(255,50,50,0.06);
+      border: 1px solid rgba(255,50,50,0.25);
+      border-radius: 8px;
+      color: #ff6b6b;
       font-size: 0.88rem;
     }
     .err-box.show { display: block; }
 
+    /* QR */
+    .qr-area { text-align: center; margin-bottom: 20px; }
+
+    .qr-box {
+      width: 180px; height: 180px;
+      margin: 0 auto 14px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .qr-box img { width: 100%; height: 100%; object-fit: contain; border-radius: 12px; }
+    .qr-icon { font-size: 2.5rem; color: var(--muted); }
+
+    .scan-line {
+      position: absolute;
+      left: 0; right: 0; height: 2px;
+      background: linear-gradient(90deg, transparent, var(--orange), transparent);
+      animation: scan 2s linear infinite;
+    }
+    @keyframes scan { 0%{top:0} 100%{top:100%} }
+
+    .qr-hint { color: var(--muted); font-size: 0.88rem; line-height: 1.5; }
+
+    /* Instructions */
+    .instructions {
+      margin-top: 24px;
+      padding-top: 20px;
+      border-top: 1px solid var(--border);
+    }
+
+    .instr-title {
+      font-family: 'Orbitron', monospace;
+      font-size: 0.7rem;
+      letter-spacing: 2px;
+      color: var(--muted);
+      margin-bottom: 14px;
+    }
+
+    .instr-item {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      margin-bottom: 10px;
+    }
+
+    .instr-num {
+      min-width: 22px; height: 22px;
+      border-radius: 50%;
+      background: var(--orange);
+      color: #000;
+      font-family: 'Orbitron', monospace;
+      font-size: 0.6rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .instr-text { color: #888; font-size: 0.9rem; line-height: 1.5; }
+    .instr-text strong { color: var(--text); }
+
+    .platforms {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+      margin-top: 16px;
+    }
+
+    .plat-tag {
+      padding: 4px 10px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      font-size: 0.68rem;
+      color: var(--muted);
+      letter-spacing: 1px;
+    }
+
+    /* ── COMMUNITY ── */
+    .community {
+      position: relative;
+      z-index: 1;
+      padding: 50px 24px;
+      max-width: 680px;
+      margin: 0 auto;
+      text-align: center;
+      border-top: 1px solid var(--border);
+    }
+
+    .community-cards {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      margin-top: 28px;
+    }
+
+    .comm-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 22px 18px;
+      text-decoration: none;
+      color: var(--text);
+      display: block;
+      transition: all 0.25s;
+    }
+    .comm-card:hover { border-color: var(--orange); transform: translateY(-3px); box-shadow: 0 8px 25px rgba(255,107,0,0.08); }
+
+    .comm-icon { font-size: 1.8rem; margin-bottom: 10px; }
+    .comm-name {
+      font-family: 'Orbitron', monospace;
+      font-size: 0.72rem;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+    .comm-desc { font-size: 0.82rem; color: var(--muted); line-height: 1.5; }
+
+    .comm-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 12px;
+      padding: 7px 14px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 0.7rem;
+      color: var(--orange);
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      transition: all 0.2s;
+    }
+    .comm-card:hover .comm-btn { border-color: var(--orange); background: rgba(255,107,0,0.05); }
+
     /* Spinner */
     .spinner {
-      width: 18px; height: 18px;
-      border: 2px solid rgba(255,255,255,0.3);
-      border-top-color: #fff;
+      width: 16px; height: 16px;
+      border: 2px solid rgba(0,0,0,0.3);
+      border-top-color: #000;
       border-radius: 50%;
       animation: spin 0.7s linear infinite;
     }
     @keyframes spin { to { transform: rotate(360deg); } }
-
-    /* Status dot */
-    .status-dot {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 0.78rem;
-      color: #10b981;
-      margin-bottom: 20px;
-    }
-    .dot {
-      width: 7px; height: 7px;
-      background: #10b981;
-      border-radius: 50%;
-      animation: blink 1.5s ease-in-out infinite;
-    }
-    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
 
     /* Back btn */
     .back-btn {
@@ -605,214 +731,269 @@
       align-items: center;
       gap: 6px;
       color: var(--muted);
-      font-size: 0.88rem;
+      font-size: 0.85rem;
       cursor: pointer;
-      margin-bottom: 20px;
       border: none;
       background: transparent;
       padding: 0;
+      margin-bottom: 20px;
+      transition: color 0.2s;
     }
-    .back-btn:hover { color: var(--blue-bright); }
+    .back-btn:hover { color: var(--orange); }
+
+    /* Session sub-pages */
+    #page-pair, #page-qr {
+      padding: 90px 24px 60px;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    .page-avatar-wrap { text-align: center; margin-bottom: 20px; }
+
+    .page-avatar {
+      width: 80px; height: 80px;
+      border-radius: 50%;
+      object-fit: cover;
+      object-position: top;
+      border: 3px solid var(--orange);
+      box-shadow: 0 0 25px var(--orange-glow);
+      margin-bottom: 14px;
+    }
+
+    .page-title {
+      font-family: 'Orbitron', monospace;
+      font-size: 1.5rem;
+      font-weight: 900;
+      margin-bottom: 6px;
+    }
+    .page-title span { color: var(--orange); }
+    .page-sub { color: var(--muted); font-size: 0.9rem; }
+
+    .switch-link {
+      text-align: center;
+      margin-top: 18px;
+      color: var(--muted);
+      font-size: 0.85rem;
+    }
+    .switch-link a { color: var(--orange); cursor: pointer; text-decoration: none; font-weight: 600; }
+    .switch-link a:hover { text-decoration: underline; }
+
+    @media (max-width: 600px) {
+      .stats { gap: 30px; }
+      .community-cards { grid-template-columns: 1fr; }
+      .hero-title { font-size: 2.5rem; }
+      .code-value { font-size: 1.5rem; letter-spacing: 4px; }
+    }
   </style>
 </head>
 <body>
 
   <!-- NAVBAR -->
   <nav class="nav">
-    <div class="nav-logo" onclick="showPage('home')" style="cursor:pointer">
-      <div class="nav-icon">👑</div>
-      <span class="nav-name">ITACHI-XMD</span>
+    <div class="nav-logo" onclick="showPage('home')">
+      <img class="nav-avatar" src="https://i.ibb.co/ds0fdYCX/IMG-20260409-WA0249.jpg" alt="ITACHI-XMD" onerror="this.style.display='none'">
+      <span class="nav-name">ITACHI<span>-XMD</span></span>
     </div>
-    <button class="nav-menu">☰</button>
+    <a href="#" onclick="showPage('pair'); return false;" class="nav-btn">🔑 SESSION</a>
   </nav>
 
-  <!-- ── HOME PAGE ── -->
+  <!-- ═══════════════ HOME PAGE ═══════════════ -->
   <div id="page-home" class="page active">
 
+    <!-- HERO -->
     <div class="hero">
-      <div class="hero-avatar">🤖</div>
-      <h1>ITACHI-XMD Session</h1>
-      <p>Connecte ton WhatsApp directement — le bot démarre automatiquement, sans SESSION_ID.</p>
+
+      <!-- Bot image card -->
+      <div class="bot-card-wrap">
+        <div class="bot-card">
+          <img src="https://i.ibb.co/ds0fdYCX/IMG-20260409-WA0249.jpg" alt="ITACHI-XMD V2" onerror="this.style.background='#1a1a1a'; this.style.display='flex'; this.style.alignItems='center'; this.style.justifyContent='center'; this.outerHTML='<div style=\'width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:4rem\'>🤖</div>'">
+          <div class="bot-card-label">ITACHI-XMD-V2</div>
+        </div>
+      </div>
+
+      <!-- Status -->
+      <div class="status-badge">
+        <span class="status-dot"></span>
+        BOT EN LIGNE · ITACHI-XMD V2.0
+      </div>
+
+      <!-- Session tag -->
+      <div class="session-tag">● WHATSAPP SESSION GENERATOR</div>
+
+      <!-- Title -->
+      <h1 class="hero-title">ITACHI<span>-XMD</span></h1>
+      <p class="hero-sub">V2.0 · CENTRAL-HEX™</p>
+
+      <p class="hero-desc">
+        Lie ton WhatsApp <strong>une seule fois</strong>, connecte ton bot directement — <strong>rapide, sécurisé, sans SESSION_ID.</strong>
+      </p>
 
       <div class="hero-btns">
-        <button class="btn-main" onclick="showPage('pair')">🔑 Obtenir ma Session</button>
-        <button class="btn-outline" onclick="showPage('bots')">🤖 Voir les Bots</button>
+        <a href="#" onclick="showPage('pair'); return false;" class="btn-primary">🔑 OBTENIR MA SESSION</a>
+        <a href="#how" class="btn-secondary" onclick="document.getElementById('how').scrollIntoView({behavior:'smooth'}); return false;">📖 COMMENT ÇA MARCHE</a>
       </div>
+    </div>
+
+    <!-- STATS -->
+    <div class="stats">
+      <div class="stat"><div class="stat-value">2</div><div class="stat-label">Méthodes</div></div>
+      <div class="stat"><div class="stat-value">100%</div><div class="stat-label">Sécurisé</div></div>
+      <div class="stat"><div class="stat-value">24/7</div><div class="stat-label">En ligne</div></div>
+      <div class="stat"><div class="stat-value">33+</div><div class="stat-label">Commandes</div></div>
     </div>
 
     <!-- HOW IT WORKS -->
-    <div class="steps-section">
-      <div class="section-badge">✦ Simple Steps</div>
-      <div class="section-title">Comment ça marche</div>
-      <div class="section-sub">3 étapes pour connecter ton bot et le déployer.</div>
+    <div id="how" class="section">
+      <div class="section-label">// COMMENT ÇA MARCHE</div>
+      <h2 class="section-title">3 étapes simples</h2>
+      <p class="section-desc">Génère ta session WhatsApp en quelques secondes.</p>
 
-      <div class="step-card">
-        <div class="step-icon-box">📱</div>
-        <div class="step-num">01</div>
-        <div>
+      <div class="steps-grid">
+        <div class="step-card">
+          <div class="step-num">01</div>
+          <div class="step-icon">📱</div>
           <div class="step-title">Entre ton numéro</div>
-          <div class="step-desc">Va sur la page Pair Code et entre ton numéro WhatsApp sans le signe +.</div>
+          <p class="step-desc">Entre ton numéro WhatsApp complet avec l'indicatif pays, sans le signe +.</p>
         </div>
-      </div>
-
-      <div class="step-card">
-        <div class="step-icon-box">🔗</div>
-        <div class="step-num">02</div>
-        <div>
+        <div class="step-card">
+          <div class="step-num">02</div>
+          <div class="step-icon">🔗</div>
           <div class="step-title">Lie ton WhatsApp</div>
-          <div class="step-desc">Entre le code de pairing dans WhatsApp → Appareils liés → Lier un appareil.</div>
+          <p class="step-desc">Entre le code de pairing dans WhatsApp → Appareils liés → Lier un appareil.</p>
         </div>
-      </div>
-
-      <div class="step-card">
-        <div class="step-icon-box">🚀</div>
-        <div class="step-num">03</div>
-        <div>
-          <div class="step-title">Le bot démarre !</div>
-          <div class="step-desc">Le bot se connecte automatiquement. Tape <code style="color:var(--blue-bright)">.menu</code> pour commencer.</div>
+        <div class="step-card">
+          <div class="step-num">03</div>
+          <div class="step-icon">🚀</div>
+          <div class="step-title">Bot actif !</div>
+          <p class="step-desc">Le bot démarre automatiquement. Tape .menu pour voir toutes les commandes.</p>
         </div>
       </div>
     </div>
 
-    <!-- FEATURES -->
-    <div class="features">
-      <div class="section-badge">✦ Pourquoi ITACHI-XMD</div>
-      <div class="section-title">Key Features</div>
-      <div class="section-sub">Tout ce dont tu as besoin pour ton bot WhatsApp.</div>
+    <!-- GENERATOR -->
+    <div id="session-section" class="section" style="padding-top:0;">
+      <div class="section-label">// GÉNÉRATEUR DE SESSION</div>
+      <h2 class="section-title">Génère ta Session</h2>
+      <p class="section-desc">Connecte ton WhatsApp et le bot démarre instantanément.</p>
 
-      <div class="feature-card">
-        <div class="feature-icon">🛡️</div>
-        <div class="feature-title">Sécurisé & Chiffré</div>
-        <div class="feature-desc">La session est stockée directement sur ton serveur. Tes credentials ne quittent jamais ton appareil.</div>
-      </div>
+      <div class="gen-card">
+        <div class="gen-card-header">
+          <div class="gen-dot"></div>
+          <div class="gen-title">ITACHI-XMD SESSION GENERATOR</div>
+        </div>
 
-      <div class="feature-card">
-        <div class="feature-icon">⚡</div>
-        <div class="feature-title">Connexion instantanée</div>
-        <div class="feature-desc">Pas besoin de SESSION_ID. Le bot démarre automatiquement dès que tu confirmes le pairing.</div>
-      </div>
+        <div class="gen-body">
+          <!-- Tabs -->
+          <div class="tabs">
+            <button class="tab active" onclick="switchTab('pair')">🔑 PAIR CODE</button>
+            <button class="tab" onclick="switchTab('qr')">📷 QR CODE</button>
+          </div>
 
-      <div class="feature-card">
-        <div class="feature-icon">🤖</div>
-        <div class="feature-title">33+ Commandes</div>
-        <div class="feature-desc">Menu, stickers, téléchargements, modération de groupe, IA, et bien plus encore.</div>
-      </div>
-    </div>
+          <!-- PAIR TAB -->
+          <div id="home-tab-pair" class="tab-content active">
+            <label class="form-label">Numéro de téléphone</label>
+            <input type="tel" id="homePhone" class="input-wrap" placeholder="ex: 224621963059" maxlength="15">
 
-    <button class="get-session-btn" onclick="showPage('pair')">🔑 Get Session ID Now</button>
+            <label class="form-label">Type de session</label>
+            <div class="type-row">
+              <button class="type-btn active" id="homeTypeShort" onclick="setHomeType('short', this)">🍊 Court</button>
+              <button class="type-btn" onclick="setHomeType('long', this)">📄 Long</button>
+            </div>
 
-    <!-- Community -->
-    <div style="text-align:center; margin-top:40px; padding-top:30px; border-top:1px solid var(--border);">
-      <div class="section-badge" style="margin-bottom:12px">💎 CENTRAL-HEX</div>
-      <p style="color:var(--muted); font-size:0.88rem; margin-bottom:16px">La communauté tech & digital — bots, IA, automatisation</p>
-      <a href="https://whatsapp.com/channel/0029VbC8YkY7oQhiOiiSpy1z" target="_blank" style="color:var(--blue-bright); font-size:0.9rem; font-weight:600; text-decoration:none;">📢 Rejoindre la chaîne →</a>
-    </div>
-  </div>
+            <button class="submit-btn" id="homePairBtn" onclick="getHomePair()">⚡ OBTENIR LE CODE</button>
+            <div class="err-box" id="homeErr"></div>
 
-  <!-- ── PAIR CODE PAGE ── -->
-  <div id="page-pair" class="page">
+            <div class="code-display" id="homeCodeDisplay">
+              <div class="code-label">// ENTRE CE CODE DANS WHATSAPP</div>
+              <div class="code-value" id="homeCodeValue">----</div>
+              <div class="code-hint">WhatsApp → ⋮ → Appareils liés → Lier un appareil<br>Entre le code → Le bot démarre automatiquement ✅</div>
+            </div>
 
-    <button class="back-btn" onclick="showPage('home')">← Retour</button>
+            <div class="success-box" id="homeSuccess">
+              <div class="success-title">🎉 Bot connecté !</div>
+              <div class="success-desc">ITACHI-XMD est en ligne. Envoie <strong>.menu</strong> pour commencer.</div>
+            </div>
+          </div>
 
-    <div class="page-header">
-      <div class="page-avatar">
-        👑
-        <span class="badge">🔑</span>
-      </div>
-      <div class="page-title">Pair Code Login</div>
-      <div class="page-sub">Entre ton numéro WhatsApp — sans le signe +</div>
-    </div>
+          <!-- QR TAB -->
+          <div id="home-tab-qr" class="tab-content">
+            <div class="qr-area">
+              <div class="qr-box" id="homeQrBox">
+                <div class="scan-line"></div>
+                <span class="qr-icon" id="homeQrIcon">📷</span>
+                <img id="homeQrImg" src="" alt="" style="display:none">
+              </div>
+              <div class="qr-hint">Scannez ce QR code avec WhatsApp<br>pour connecter le bot automatiquement</div>
+            </div>
 
-    <div class="form-card">
-      <label class="form-label">Numéro de téléphone</label>
-      <div class="input-wrap">
-        <span>📞</span>
-        <input type="tel" id="pairPhone" placeholder="ex: 224621963059" maxlength="15">
-      </div>
+            <button class="submit-btn" id="homeQrBtn" onclick="getHomeQR()">📷 GÉNÉRER LE QR CODE</button>
+            <div class="err-box" id="homeQrErr"></div>
 
-      <div class="type-label">Type de session</div>
-      <div class="type-toggle">
-        <button class="type-btn active" id="typeShort" onclick="setType('short')">🗜️ Short</button>
-        <button class="type-btn" id="typeLong" onclick="setType('long')">📄 Long</button>
-      </div>
+            <div class="success-box" id="homeQrSuccess">
+              <div class="success-title">🎉 Bot connecté !</div>
+              <div class="success-desc">ITACHI-XMD est en ligne. Envoie <strong>.menu</strong> pour commencer.</div>
+            </div>
+          </div>
 
-      <button class="submit-btn" id="pairBtn" onclick="getPairCode()">
-        ⚡ GET PAIR CODE
-      </button>
+          <!-- INSTRUCTIONS -->
+          <div class="instructions">
+            <div class="instr-title">// INSTRUCTIONS</div>
+            <div class="instr-item">
+              <div class="instr-num">1</div>
+              <div class="instr-text">Entre ton numéro WhatsApp avec <strong>l'indicatif pays</strong>, sans le signe +</div>
+            </div>
+            <div class="instr-item">
+              <div class="instr-num">2</div>
+              <div class="instr-text">Choisis le type : <strong>Court</strong> ou <strong>Long</strong></div>
+            </div>
+            <div class="instr-item">
+              <div class="instr-num">3</div>
+              <div class="instr-text">Ouvre WhatsApp → <strong>⋮ → Appareils liés → Lier un appareil</strong></div>
+            </div>
+            <div class="instr-item">
+              <div class="instr-num">4</div>
+              <div class="instr-text">Entre le code — <strong>le bot démarre automatiquement</strong></div>
+            </div>
 
-      <div class="err-box" id="pairErr"></div>
-
-      <div class="code-display" id="codeDisplay">
-        <div class="code-label">// Entre ce code dans WhatsApp</div>
-        <div class="code-value" id="codeValue">----</div>
-        <div class="code-hint">
-          WhatsApp → ⋮ → Appareils liés → Lier un appareil<br>
-          Entre le code → Le bot démarre automatiquement ✅
+            <div class="platforms">
+              <span class="plat-tag">Railway</span>
+              <span class="plat-tag">Render</span>
+              <span class="plat-tag">Heroku</span>
+              <span class="plat-tag">Koyeb</span>
+              <span class="plat-tag">VPS</span>
+              <span class="plat-tag">Replit</span>
+              <span class="plat-tag">Fly.io</span>
+            </div>
+          </div>
         </div>
       </div>
+    </div>
 
-      <div class="success-box" id="pairSuccess">
-        <div class="success-icon">🎉</div>
-        <div class="success-title">Bot connecté !</div>
-        <div class="success-desc">Ton bot ITACHI-XMD est maintenant en ligne.<br>Envoie <strong>.menu</strong> pour voir toutes les commandes.</div>
+    <!-- COMMUNITY -->
+    <div class="community">
+      <div class="section-label">// REJOINS LA COMMUNAUTÉ</div>
+      <h2 class="section-title">Reste connecté</h2>
+      <p style="color:var(--muted); margin-top:8px; font-size:0.9rem">Rejoins notre groupe WhatsApp et suis notre chaîne pour les mises à jour, l'aide et les nouveautés.</p>
+
+      <div class="community-cards">
+        <a href="https://whatsapp.com/channel/0029VbC8YkY7oQhiOiiSpy1z" target="_blank" class="comm-card">
+          <div class="comm-icon">💬</div>
+          <div class="comm-name">CHAÎNE WHATSAPP</div>
+          <div class="comm-desc">Suis la chaîne officielle pour les annonces, mises à jour et nouvelles fonctionnalités.</div>
+          <div class="comm-btn">📢 SUIVRE LA CHAÎNE</div>
+        </a>
+        <a href="https://whatsapp.com/channel/0029VbC8YkY7oQhiOiiSpy1z" target="_blank" class="comm-card">
+          <div class="comm-icon">🚀</div>
+          <div class="comm-name">CENTRAL-HEX</div>
+          <div class="comm-desc">La communauté tech & digital — bots, IA, automatisation et projets créatifs.</div>
+          <div class="comm-btn">💎 REJOINDRE</div>
+        </a>
       </div>
     </div>
 
-    <div class="switch-link">
-      Préfères-tu le QR Code ? <a onclick="showPage('qr')">📷 Scanner le QR Code</a>
-    </div>
-  </div>
-
-  <!-- ── QR CODE PAGE ── -->
-  <div id="page-qr" class="page">
-
-    <button class="back-btn" onclick="showPage('home')">← Retour</button>
-
-    <div class="page-header">
-      <div class="page-avatar">
-        📷
-        <span class="badge">🔗</span>
-      </div>
-      <div class="page-title">QR Code Login</div>
-      <div class="page-sub">Scanne le QR code dans WhatsApp → Appareils liés</div>
-    </div>
-
-    <div class="form-card">
-      <div class="type-label">Type de session</div>
-      <div class="type-toggle">
-        <button class="type-btn active">🗜️ Short</button>
-        <button class="type-btn" onclick="">📄 Long</button>
-      </div>
-
-      <div class="qr-wrap">
-        <div class="qr-box" id="qrBox">
-          <div class="scan-line" id="scanLine"></div>
-          <span class="qr-placeholder-icon" id="qrIcon">📷</span>
-          <img id="qrImg" src="" alt="" style="display:none">
-        </div>
-        <div class="qr-hint">Scanne ce QR code avec WhatsApp<br>pour connecter le bot automatiquement</div>
-      </div>
-
-      <button class="submit-btn" id="qrBtn" onclick="getQR()">
-        📷 GENERATE QR CODE
-      </button>
-
-      <div class="err-box" id="qrErr"></div>
-
-      <div class="success-box" id="qrSuccess">
-        <div class="success-icon">🎉</div>
-        <div class="success-title">Bot connecté !</div>
-        <div class="success-desc">Ton bot ITACHI-XMD est maintenant en ligne.<br>Envoie <strong>.menu</strong> pour voir toutes les commandes.</div>
-      </div>
-    </div>
-
-    <div class="switch-link">
-      Préfères-tu le Pair Code ? <a onclick="showPage('pair')">🔑 Use Pair Code instead</a>
-    </div>
-  </div>
+  </div><!-- end page-home -->
 
   <script>
-    let sessionType = 'short';
     let pollInterval = null;
 
     function showPage(name) {
@@ -821,41 +1002,47 @@
       window.scrollTo(0, 0);
     }
 
-    function setType(t) {
-      sessionType = t;
-      document.getElementById('typeShort').classList.toggle('active', t === 'short');
-      document.getElementById('typeLong').classList.toggle('active', t === 'long');
+    function switchTab(tab) {
+      document.querySelectorAll('.tab').forEach((t, i) => {
+        t.classList.toggle('active', (i === 0 && tab === 'pair') || (i === 1 && tab === 'qr'));
+      });
+      document.getElementById('home-tab-pair').classList.toggle('active', tab === 'pair');
+      document.getElementById('home-tab-qr').classList.toggle('active', tab === 'qr');
     }
 
-    async function getPairCode() {
-      const phone = document.getElementById('pairPhone').value.replace(/\D/g, '');
-      const btn = document.getElementById('pairBtn');
-      const err = document.getElementById('pairErr');
-      const codeDisplay = document.getElementById('codeDisplay');
-      const success = document.getElementById('pairSuccess');
+    function setHomeType(type, el) {
+      document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('active'));
+      el.classList.add('active');
+    }
+
+    async function getHomePair() {
+      const phone = document.getElementById('homePhone').value.replace(/\D/g, '');
+      const btn = document.getElementById('homePairBtn');
+      const err = document.getElementById('homeErr');
+      const codeDisplay = document.getElementById('homeCodeDisplay');
+      const success = document.getElementById('homeSuccess');
 
       err.classList.remove('show');
       success.classList.remove('show');
       codeDisplay.classList.remove('show');
 
       if (!phone || phone.length < 7) {
-        err.textContent = '⚠️ Numéro invalide. Entre ton numéro complet avec l\'indicatif pays.';
+        err.textContent = '⚠️ Numéro invalide. Entre ton numéro avec l\'indicatif pays.';
         err.classList.add('show');
         return;
       }
 
       btn.disabled = true;
-      btn.innerHTML = '<div class="spinner"></div> Génération...';
+      btn.innerHTML = '<div class="spinner"></div> GÉNÉRATION...';
 
       try {
         const res = await fetch(`/session/pair?number=${phone}`);
         const data = await res.json();
 
         if (data.code && data.code !== 'Service indisponible') {
-          document.getElementById('codeValue').textContent = data.code;
+          document.getElementById('homeCodeValue').textContent = data.code;
           codeDisplay.classList.add('show');
-          // Poll for bot connection
-          startPolling('pairSuccess');
+          startPolling('homeSuccess');
         } else {
           err.textContent = '❌ ' + (data.error || 'Service indisponible. Réessaie.');
           err.classList.add('show');
@@ -866,20 +1053,20 @@
       }
 
       btn.disabled = false;
-      btn.innerHTML = '⚡ GET PAIR CODE';
+      btn.innerHTML = '⚡ OBTENIR LE CODE';
     }
 
-    async function getQR() {
-      const btn = document.getElementById('qrBtn');
-      const err = document.getElementById('qrErr');
-      const qrImg = document.getElementById('qrImg');
-      const qrIcon = document.getElementById('qrIcon');
+    async function getHomeQR() {
+      const btn = document.getElementById('homeQrBtn');
+      const err = document.getElementById('homeQrErr');
+      const qrImg = document.getElementById('homeQrImg');
+      const qrIcon = document.getElementById('homeQrIcon');
 
       err.classList.remove('show');
-      document.getElementById('qrSuccess').classList.remove('show');
+      document.getElementById('homeQrSuccess').classList.remove('show');
 
       btn.disabled = true;
-      btn.innerHTML = '<div class="spinner"></div> Génération...';
+      btn.innerHTML = '<div class="spinner"></div> GÉNÉRATION...';
       qrImg.style.display = 'none';
       qrIcon.style.display = 'block';
 
@@ -890,7 +1077,7 @@
           qrImg.src = URL.createObjectURL(blob);
           qrImg.style.display = 'block';
           qrIcon.style.display = 'none';
-          startPolling('qrSuccess');
+          startPolling('homeQrSuccess');
         } else {
           err.textContent = '❌ Impossible de générer le QR Code.';
           err.classList.add('show');
@@ -901,7 +1088,7 @@
       }
 
       btn.disabled = false;
-      btn.innerHTML = '📷 GENERATE QR CODE';
+      btn.innerHTML = '📷 GÉNÉRER LE QR CODE';
     }
 
     function startPolling(successId) {
@@ -917,6 +1104,14 @@
         } catch (e) {}
       }, 3000);
     }
+
+    // Smooth scroll
+    document.querySelectorAll('a[href^="#"]').forEach(a => {
+      a.addEventListener('click', e => {
+        const target = document.querySelector(a.getAttribute('href'));
+        if (target) { e.preventDefault(); target.scrollIntoView({ behavior: 'smooth' }); }
+      });
+    });
   </script>
 </body>
 </html>
