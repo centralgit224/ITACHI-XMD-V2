@@ -45,13 +45,15 @@ router.get('/pair', async (req, res) => {
                 },
                 printQRInTerminal: false,
                 logger: pino({ level: 'fatal' }),
-                browser: Browsers.macOS('Chrome')
+                browser: Browsers.ubuntu('Chrome'),
+                syncFullHistory: false,
             });
 
             if (!sock.authState.creds.registered) {
-                await delay(1500);
+                await delay(2000);
                 num = num.replace(/[^0-9]/g, '');
-                const code = await sock.requestPairingCode(num);
+                let code = await sock.requestPairingCode(num);
+                code = code?.match(/.{1,4}/g)?.join('-') || code;
                 if (!res.headersSent) res.json({ code });
             }
 
@@ -63,11 +65,9 @@ router.get('/pair', async (req, res) => {
                 if (connection === 'open') {
                     await delay(3000);
 
-                    // ✅ Copier les creds directement dans ./session du bot
                     const sessionDir = path.join(process.cwd(), 'session');
                     if (!fs.existsSync(sessionDir)) fs.mkdirSync(sessionDir, { recursive: true });
 
-                    // Copier tous les fichiers de session
                     const files = fs.readdirSync(tempDir);
                     for (const file of files) {
                         fs.copyFileSync(
@@ -78,10 +78,7 @@ router.get('/pair', async (req, res) => {
 
                     console.log('✅ Session copiée dans ./session — Bot prêt !');
 
-                    // Signaler au bot principal de se reconnecter
-                    if (global.botRestart) {
-                        global.botRestart();
-                    }
+                    if (global.botRestart) global.botRestart();
 
                     await delay(500);
                     await sock.ws.close();
@@ -117,7 +114,7 @@ router.get('/qr', async (req, res) => {
                 auth: state,
                 printQRInTerminal: false,
                 logger: pino({ level: 'silent' }),
-                browser: Browsers.macOS('Desktop'),
+                browser: Browsers.ubuntu('Desktop'),
             });
 
             sock.ev.on('creds.update', saveCreds);
@@ -133,7 +130,6 @@ router.get('/qr', async (req, res) => {
                 if (connection === 'open') {
                     await delay(3000);
 
-                    // ✅ Copier les creds directement dans ./session du bot
                     const sessionDir = path.join(process.cwd(), 'session');
                     if (!fs.existsSync(sessionDir)) fs.mkdirSync(sessionDir, { recursive: true });
 
@@ -145,11 +141,9 @@ router.get('/qr', async (req, res) => {
                         );
                     }
 
-                    console.log('✅ Session copiée dans ./session via QR — Bot prêt !');
+                    console.log('✅ Session copiée via QR — Bot prêt !');
 
-                    if (global.botRestart) {
-                        global.botRestart();
-                    }
+                    if (global.botRestart) global.botRestart();
 
                     await delay(500);
                     await sock.ws.close();
