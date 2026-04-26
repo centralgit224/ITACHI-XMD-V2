@@ -34,7 +34,7 @@ global.botRestart = null;
 const { Boom } = require('@hapi/boom')
 const fs = require('fs')
 const chalk = require('chalk')
-const FileType = require('file-type'
+const FileType = require('file-type')                          // ✅ FIX: parenthèse manquante ajoutée
 const axios = require('axios')
 const { handleMessages, handleGroupParticipantUpdate, handleStatus } = require('./main');
 const PhoneNumber = require('awesome-phonenumber')
@@ -58,7 +58,6 @@ const {
     delay
 } = require("@whiskeysockets/baileys")
 const NodeCache = require("node-cache")
-// Using a lightweight persisted store instead of makeInMemoryStore (compat across versions)
 const pino = require("pino")
 const readline = require("readline")
 const { parsePhoneNumber } = require("libphonenumber-js")
@@ -80,16 +79,16 @@ setInterval(() => {
         global.gc()
         console.log('🧹 Garbage collection completed')
     }
-}, 60_000) // every 1 minute
+}, 60_000)
 
 // Memory monitoring - Restart if RAM gets too high
 setInterval(() => {
     const used = process.memoryUsage().rss / 1024 / 1024
     if (used > 400) {
         console.log('⚠️ RAM too high (>400MB), restarting bot...')
-        process.exit(1) // Panel will auto-restart
+        process.exit(1)
     }
-}, 30_000) // check every 30 seconds
+}, 30_000)
 
 let phoneNumber = "224621963059"
 let owner = JSON.parse(fs.readFileSync('./data/owner.json'))
@@ -99,13 +98,11 @@ global.themeemoji = "•"
 const pairingCode = !!phoneNumber || process.argv.includes("--pairing-code")
 const useMobile = process.argv.includes("--mobile")
 
-// Only create readline interface if we're in an interactive environment
 const rl = process.stdin.isTTY ? readline.createInterface({ input: process.stdin, output: process.stdout }) : null
 const question = (text) => {
     if (rl) {
         return new Promise((resolve) => rl.question(text, resolve))
     } else {
-        // In non-interactive environment, use ownerNumber from settings
         return Promise.resolve(settings.ownerNumber || phoneNumber)
     }
 }
@@ -140,26 +137,20 @@ async function startXeonBotInc() {
             keepAliveIntervalMs: 10000,
         })
 
-        // Save credentials when they update
         XeonBotInc.ev.on('creds.update', saveCreds)
 
     store.bind(XeonBotInc.ev)
 
-    // Message handling
     XeonBotInc.ev.on('messages.upsert', async chatUpdate => {
         try {
             const mek = chatUpdate.messages[0]
             if (!mek.message) return
             mek.message = (Object.keys(mek.message)[0] === 'ephemeralMessage') ? mek.message.ephemeralMessage.message : mek.message
-            // Gérer les statuts
             if (mek.key && mek.key.remoteJid === 'status@broadcast') {
                 await handleStatus(XeonBotInc, chatUpdate);
                 return;
             }
 
-            // ── ANTI-MENTION STATUT : intercepter groupMentionedMessage ──
-            // Ces messages arrivent dans les GROUPES (pas status@broadcast)
-            // Baileys les envoie comme messages normaux dans le groupe
             if (mek.key?.remoteJid?.endsWith('@g.us') && !mek.key.fromMe) {
                 try {
                     const { handleAntimentionStatus } = require('./commands/antimentionstatus');
@@ -168,23 +159,18 @@ async function startXeonBotInc() {
                     await handleAntimentionStatus(XeonBotInc, chatId, sender, mek);
                 } catch(e) { /* non critique */ }
             }
-            // In private mode, only block non-group messages (allow groups for moderation)
-            // Note: XeonBotInc.public is not synced, so we check mode in main.js instead
-            // This check is kept for backward compatibility but mainly blocks DMs
+
             if (!XeonBotInc.public && !mek.key.fromMe && chatUpdate.type === 'notify') {
                 const isGroup = mek.key?.remoteJid?.endsWith('@g.us')
-                if (!isGroup) return // Block DMs in private mode, but allow group messages
+                if (!isGroup) return
             }
             if (mek.key.id.startsWith('BAE5') && mek.key.id.length === 16) return
 
-            // ── Chaînes WhatsApp : traiter les messages newsletter ──
             const isChannel = mek.key?.remoteJid?.endsWith('@newsletter');
             if (isChannel) {
-                // Forcer fromMe=true pour que le bot traite comme commande proprio
                 mek.key.fromMe = true;
             }
 
-            // Clear message retry cache to prevent memory bloat
             if (XeonBotInc?.msgRetryCounterCache) {
                 XeonBotInc.msgRetryCounterCache.clear()
             }
@@ -192,7 +178,6 @@ async function startXeonBotInc() {
             try {
                 await handleMessages(XeonBotInc, chatUpdate, true)
             } catch (err) {
-                // Erreur silencieuse — on log seulement dans la console, pas dans WhatsApp
                 console.error("Error in handleMessages:", err.message || err)
             }
         } catch (err) {
@@ -200,7 +185,6 @@ async function startXeonBotInc() {
         }
     })
 
-    // Add these event handlers for better functionality
     XeonBotInc.decodeJid = (jid) => {
         if (!jid) return jid
         if (/:\d+@/gi.test(jid)) {
@@ -238,7 +222,6 @@ async function startXeonBotInc() {
 
     XeonBotInc.serializeM = (m) => smsg(XeonBotInc, m, store)
 
-    // Handle pairing code
     if (pairingCode && !XeonBotInc.authState.creds.registered) {
         if (useMobile) throw new Error('Cannot use pairing code with mobile api')
 
@@ -249,13 +232,11 @@ async function startXeonBotInc() {
             phoneNumber = await question(chalk.bgBlack(chalk.greenBright(`𝐌𝐄𝐓𝐓𝐄𝐙 𝐕𝐎𝐓𝐑𝐄 𝐍𝐔𝐌𝐄𝐑𝐎 𝐈𝐂𝐈 😍\n𝐅𝐎𝐑𝐌𝐀𝐓: 𝐍𝐎𝐓𝐑𝐄 𝐍𝐔𝐌𝐄𝐑𝐎 (𝐒𝐀𝐍𝐒 + 𝐍𝐈 𝐒𝐏𝐀𝐂𝐄𝐒) : `)))
         }
 
-        // Clean the phone number - remove any non-digit characters
         phoneNumber = phoneNumber.replace(/[^0-9]/g, '')
 
-        // Validate the phone number using awesome-phonenumber
         const pn = require('awesome-phonenumber');
         if (!pn('+' + phoneNumber).isValid()) {
-            console.log(chalk.red('Invalid phone number. Please enter your full international number (e.g., 15551234567 for US, 447911123456 for UK, etc.) without + or spaces.'));
+            console.log(chalk.red('Invalid phone number. Please enter your full international number without + or spaces.'));
             process.exit(1);
         }
 
@@ -272,7 +253,6 @@ async function startXeonBotInc() {
         }, 3000)
     }
 
-    // Connection handling
     XeonBotInc.ev.on('connection.update', async (s) => {
         const { connection, lastDisconnect, qr } = s
         
@@ -316,7 +296,7 @@ async function startXeonBotInc() {
             await delay(1999)
             console.log(chalk.yellow(`\n\n                  ${chalk.bold.blue(`[ ${global.botname || 'ITACHI-XMD'} ]`)}\n\n`))
             console.log(chalk.cyan(`< ================================================== >`))
-            console.log(chalk.magenta(`\n${global.themeemoji || '•'} YT CHANNEL:Central Hex`))
+            console.log(chalk.magenta(`\n${global.themeemoji || '•'} YT CHANNEL: Central Hex`))
             console.log(chalk.magenta(`${global.themeemoji || '•'} GITHUB: CentralHexMd`))
             console.log(chalk.magenta(`${global.themeemoji || '•'} WA NUMBER: ${owner}`))
             console.log(chalk.magenta(`${global.themeemoji || '•'} CREDIT: Central-Hex`))
@@ -348,10 +328,8 @@ async function startXeonBotInc() {
         }
     })
 
-    // Track recently-notified callers to avoid spamming messages
     const antiCallNotified = new Set();
 
-    // Anticall handler: block callers when enabled
     XeonBotInc.ev.on('call', async (calls) => {
         try {
             const { readState: readAnticallState } = require('./commands/anticall');
@@ -361,7 +339,6 @@ async function startXeonBotInc() {
                 const callerJid = call.from || call.peerJid || call.chatId;
                 if (!callerJid) continue;
                 try {
-                    // First: attempt to reject the call if supported
                     try {
                         if (typeof XeonBotInc.rejectCall === 'function' && call.id) {
                             await XeonBotInc.rejectCall(call.id, callerJid);
@@ -370,21 +347,17 @@ async function startXeonBotInc() {
                         }
                     } catch {}
 
-                    // Notify the caller only once within a short window
                     if (!antiCallNotified.has(callerJid)) {
                         antiCallNotified.add(callerJid);
                         setTimeout(() => antiCallNotified.delete(callerJid), 60000);
                         await XeonBotInc.sendMessage(callerJid, { text: '📵 Anticall is enabled. Your call was rejected and you will be blocked.' });
                     }
                 } catch {}
-                // Then: block after a short delay to ensure rejection and message are processed
                 setTimeout(async () => {
                     try { await XeonBotInc.updateBlockStatus(callerJid, 'block'); } catch {}
                 }, 800);
             }
-        } catch (e) {
-            // ignore
-        }
+        } catch (e) {}
     });
 
     XeonBotInc.ev.on('group-participants.update', async (update) => {
@@ -405,17 +378,15 @@ async function startXeonBotInc() {
         await handleStatus(XeonBotInc, status);
     });
 
-    // Sauvegarder le socket globalement pour l'API
     globalSocket = XeonBotInc;
 
-    // Capturer le QR code pour l'API
     XeonBotInc.ev.on('connection.update', (update) => {
         if (update.qr) {
             qrStore['latest'] = update.qr;
             console.log('[API] QR Code mis à jour');
         }
         if (update.connection === 'open') {
-            qrStore['latest'] = null; // Effacer le QR quand connecté
+            qrStore['latest'] = null;
         }
     });
 
@@ -435,7 +406,6 @@ async function startXeonBotInc() {
 const http = require('http');
 const url = require('url');
 
-// Stockage temporaire des sessions et codes
 const sessionStore = {};
 const qrStore = {};
 
@@ -443,7 +413,6 @@ function createApiServer(getSocket) {
     const PORT = process.env.API_PORT || 3000;
 
     const server = http.createServer(async (req, res) => {
-        // CORS headers
         res.setHeader('Access-Control-Allow-Origin', '*');
         res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
         res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -452,12 +421,12 @@ function createApiServer(getSocket) {
         if (req.method === 'OPTIONS') { res.writeHead(200); res.end(); return; }
 
         const parsed = url.parse(req.url, true);
-        const path = parsed.pathname;
+        const urlPath = parsed.pathname;     // ✅ FIX: renommé de 'path' à 'urlPath'
         const query = parsed.query;
 
         try {
             // Route: GET /pair?phone=224621963059&type=short
-            if (path === '/pair') {
+            if (urlPath === '/pair') {       // ✅ FIX: urlPath partout
                 const phone = (query.phone || '').replace(/\D/g, '');
                 const type = query.type || 'short';
 
@@ -475,11 +444,9 @@ function createApiServer(getSocket) {
                 try {
                     const jid = phone + '@s.whatsapp.net';
                     const code = await sock.requestPairingCode(jid);
-                    // Formater le code: XXXXXXXX → XXXX-XXXX
                     const formatted = code ? code.match(/.{1,4}/g)?.join('-') || code : null;
 
                     if (formatted) {
-                        // Attendre la session dans le background
                         waitForSession(sock, phone, type, jid);
                         res.writeHead(200);
                         res.end(JSON.stringify({ code: formatted, phone }));
@@ -493,8 +460,7 @@ function createApiServer(getSocket) {
                 }
             }
 
-            // Route: GET /session?phone=224621963059
-            else if (path === '/session') {
+            else if (urlPath === '/session') {   // ✅ FIX: urlPath
                 const phone = (query.phone || '').replace(/\D/g, '');
                 const session = sessionStore[phone];
                 if (session) {
@@ -506,8 +472,7 @@ function createApiServer(getSocket) {
                 }
             }
 
-            // Route: GET /qr?type=short
-            else if (path === '/qr') {
+            else if (urlPath === '/qr') {        // ✅ FIX: urlPath
                 const qrData = qrStore['latest'];
                 if (qrData) {
                     res.writeHead(200);
@@ -518,15 +483,13 @@ function createApiServer(getSocket) {
                 }
             }
 
-            // Route: GET /qr-session
-            else if (path === '/qr-session') {
+            else if (urlPath === '/qr-session') { // ✅ FIX: urlPath
                 const session = sessionStore['qr-session'];
                 res.writeHead(200);
                 res.end(JSON.stringify({ session: session || null }));
             }
 
-            // Route: GET /status
-            else if (path === '/status') {
+            else if (urlPath === '/status') {    // ✅ FIX: urlPath
                 const sock = getSocket();
                 res.writeHead(200);
                 res.end(JSON.stringify({
@@ -555,27 +518,21 @@ function createApiServer(getSocket) {
     return server;
 }
 
-// Attendre que la session soit générée après le pairing
 function waitForSession(sock, phone, type, jid) {
-    // La session sera capturée via l'event creds.update
-    // On la stocke dans sessionStore[phone] quand elle est prête
     console.log(`[API] En attente de session pour ${phone}...`);
     
-    // Crédit timeout de 2 minutes
     const timeout = setTimeout(() => {
         if (!sessionStore[phone]) {
             console.log(`[API] Timeout session pour ${phone}`);
         }
     }, 120000);
 
-    // Listener temporaire pour capter les creds
     const listener = async () => {
         try {
             const sessionData = fs.readFileSync('./session/creds.json', 'utf8');
             if (sessionData) {
                 let sessionId;
                 if (type === 'short') {
-                    // Encoder en base64 compact
                     sessionId = 'itachi~' + Buffer.from(sessionData).toString('base64').substring(0, 100);
                 } else {
                     sessionId = sessionData;
@@ -584,7 +541,6 @@ function waitForSession(sock, phone, type, jid) {
                 clearTimeout(timeout);
                 console.log(`✅ [API] Session générée pour ${phone}`);
                 
-                // Envoyer la session en MP à l'utilisateur
                 await sock.sendMessage(jid, {
                     text: `╔═════════════════════╗
 ║   🥷 *𝗜𝗧𝗔𝗖𝗛𝗜-𝗫𝗠𝗗-𝐕2* 🥷   ║
@@ -600,24 +556,21 @@ function waitForSession(sock, phone, type, jid) {
         } catch (e) {}
     };
 
-    // Déclencher après 5 secondes (temps de lier l'appareil)
     setTimeout(listener, 5000);
     setTimeout(listener, 10000);
     setTimeout(listener, 20000);
     setTimeout(listener, 30000);
 }
 
-// Variable globale pour accéder au socket
 let globalSocket = null;
 
-// Start the bot with error handling
-// Démarrer le serveur API
 createApiServer(() => globalSocket);
 
 startXeonBotInc().catch(error => {
     console.error('Fatal error:', error)
     process.exit(1)
 })
+
 process.on('uncaughtException', (err) => {
     console.error('Uncaught Exception:', err)
 })
