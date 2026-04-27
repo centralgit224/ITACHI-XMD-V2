@@ -3,58 +3,56 @@
  * Intégré directement dans le bot
  * by CENTRAL-HEX 💎
  */
-
+const { makeid } = require('./session_utils');
 const express = require('express');
-const QRCode = require('qrcode');
-const pino = require('pino');
 const fs = require('fs');
 const path = require('path');
-const { makeid } = require('./session_utils');
-
+const router = express.Router();
+const pino = require('pino');
+const QRCode = require('qrcode');
 const {
     default: makeWASocket,
     useMultiFileAuthState,
+    delay,
     makeCacheableSignalKeyStore,
-    Browsers,
-    delay
+    Browsers
 } = require('@whiskeysockets/baileys');
-
-const router = express.Router();
 
 function removeFile(filePath) {
     if (!fs.existsSync(filePath)) return false;
     fs.rmSync(filePath, { recursive: true, force: true });
 }
 
-// ─── PAIR CODE ──────────────────────────────────────────────
+// ─── PAIR CODE ───────────────────────────────────────────────
 router.get('/pair', async (req, res) => {
     const id = makeid();
     let num = req.query.number;
-
     if (!num) return res.json({ error: 'Numéro requis' });
 
     const tempDir = path.join(process.cwd(), 'temp_session', id);
 
-    async function connectAndPair() {
+    async function PAIR() {
         const { state, saveCreds } = await useMultiFileAuthState(tempDir);
         try {
             let sock = makeWASocket({
                 auth: {
                     creds: state.creds,
-                    keys: makeCacheableSignalKeyStore(state.keys, pino({ level: 'fatal' })),
+                    keys: makeCacheableSignalKeyStore(
+                        state.keys,
+                        pino({ level: 'fatal' }).child({ level: 'fatal' })
+                    ),
                 },
                 printQRInTerminal: false,
-                logger: pino({ level: 'fatal' }),
-                browser: ['ITACHI-XMD', 'Chrome', '3.0'],
-                syncFullHistory: false,
+                logger: pino({ level: 'fatal' }).child({ level: 'fatal' }),
+                browser: Browsers.macOS('Safari'),
             });
 
             if (!sock.authState.creds.registered) {
-                await delay(2000);
+                await delay(1500);
                 num = num.replace(/[^0-9]/g, '');
-                let code = await sock.requestPairingCode(num);
-                code = code?.match(/.{1,4}/g)?.join('-') || code;
-                if (!res.headersSent) res.json({ code });
+                const code = await sock.requestPairingCode(num);
+                const formatted = code?.match(/.{1,4}/g)?.join('-') || code;
+                if (!res.headersSent) res.json({ code: formatted });
             }
 
             sock.ev.on('creds.update', saveCreds);
@@ -65,9 +63,11 @@ router.get('/pair', async (req, res) => {
                 if (connection === 'open') {
                     await delay(3000);
 
+                    // Copier session dans ./session du bot
                     const sessionDir = path.join(process.cwd(), 'session');
-                    if (!fs.existsSync(sessionDir)) fs.mkdirSync(sessionDir, { recursive: true });
-
+                    if (!fs.existsSync(sessionDir)) {
+                        fs.mkdirSync(sessionDir, { recursive: true });
+                    }
                     const files = fs.readdirSync(tempDir);
                     for (const file of files) {
                         fs.copyFileSync(
@@ -76,7 +76,8 @@ router.get('/pair', async (req, res) => {
                         );
                     }
 
-                    console.log('✅ Session copiée dans ./session — Bot prêt !');
+                    global.botConnected = true;
+                    console.log('✅ Session connectée ! Bot prêt.');
 
                     if (global.botRestart) global.botRestart();
 
@@ -86,9 +87,12 @@ router.get('/pair', async (req, res) => {
                     return;
                 }
 
-                if (connection === 'close' && lastDisconnect?.error?.output?.statusCode !== 401) {
+                if (
+                    connection === 'close' &&
+                    lastDisconnect?.error?.output?.statusCode !== 401
+                ) {
                     await delay(5000);
-                    connectAndPair();
+                    PAIR();
                 }
             });
 
@@ -99,22 +103,22 @@ router.get('/pair', async (req, res) => {
         }
     }
 
-    return await connectAndPair();
+    return await PAIR();
 });
 
-// ─── QR CODE ────────────────────────────────────────────────
+// ─── QR CODE ─────────────────────────────────────────────────
 router.get('/qr', async (req, res) => {
     const id = makeid();
     const tempDir = path.join(process.cwd(), 'temp_session', id);
 
-    async function connectAndQR() {
+    async function QR() {
         const { state, saveCreds } = await useMultiFileAuthState(tempDir);
         try {
             let sock = makeWASocket({
                 auth: state,
                 printQRInTerminal: false,
                 logger: pino({ level: 'silent' }),
-                browser: Browsers.ubuntu('Desktop'),
+                browser: Browsers.macOS('Safari'),
             });
 
             sock.ev.on('creds.update', saveCreds);
@@ -123,16 +127,17 @@ router.get('/qr', async (req, res) => {
                 const { connection, lastDisconnect, qr } = s;
 
                 if (qr) {
-                    const qrBuffer = await QRCode.toBuffer(qr);
-                    if (!res.headersSent) res.end(qrBuffer);
+                    const buf = await QRCode.toBuffer(qr);
+                    if (!res.headersSent) res.end(buf);
                 }
 
                 if (connection === 'open') {
                     await delay(3000);
 
                     const sessionDir = path.join(process.cwd(), 'session');
-                    if (!fs.existsSync(sessionDir)) fs.mkdirSync(sessionDir, { recursive: true });
-
+                    if (!fs.existsSync(sessionDir)) {
+                        fs.mkdirSync(sessionDir, { recursive: true });
+                    }
                     const files = fs.readdirSync(tempDir);
                     for (const file of files) {
                         fs.copyFileSync(
@@ -141,7 +146,8 @@ router.get('/qr', async (req, res) => {
                         );
                     }
 
-                    console.log('✅ Session copiée via QR — Bot prêt !');
+                    global.botConnected = true;
+                    console.log('✅ Session connectée via QR !');
 
                     if (global.botRestart) global.botRestart();
 
@@ -151,9 +157,12 @@ router.get('/qr', async (req, res) => {
                     return;
                 }
 
-                if (connection === 'close' && lastDisconnect?.error?.output?.statusCode !== 401) {
+                if (
+                    connection === 'close' &&
+                    lastDisconnect?.error?.output?.statusCode !== 401
+                ) {
                     await delay(5000);
-                    connectAndQR();
+                    QR();
                 }
             });
 
@@ -164,17 +173,16 @@ router.get('/qr', async (req, res) => {
         }
     }
 
-    return await connectAndQR();
+    return await QR();
 });
 
-// ─── STATUS ─────────────────────────────────────────────────
+// ─── STATUS ──────────────────────────────────────────────────
 router.get('/status', (req, res) => {
     const sessionDir = path.join(process.cwd(), 'session');
     const hasSession = fs.existsSync(path.join(sessionDir, 'creds.json'));
     res.json({
         connected: global.botConnected || false,
         hasSession,
-        botName: 'ITACHI-XMD V2.0'
     });
 });
 
