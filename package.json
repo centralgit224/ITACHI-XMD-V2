@@ -33,6 +33,7 @@
     "link-preview-js": "^3.0.5",
     "megajs": "1.1.7",
     "moment-timezone": "^0.5.43",
+    "mumaker": "^2.0.0",
     "node-cache": "^5.1.2",
     "node-fetch": "^2.7.0",
     "node-id3": "^0.2.3",
