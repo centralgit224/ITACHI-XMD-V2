@@ -1,15 +1,16 @@
 /**
- * ITACHI-XMD — Session Web Server
- * Intégré directement dans le bot
+ * ITACHI-XMD — Session Server
+ * Basé sur ShadowCrew (qui fonctionne ✅)
  * by CENTRAL-HEX 💎
  */
+
 const { makeid } = require('./session_utils');
+const QRCode = require('qrcode');
 const express = require('express');
 const fs = require('fs');
 const path = require('path');
-const router = express.Router();
+let router = express.Router();
 const pino = require('pino');
-const QRCode = require('qrcode');
 const {
     default: makeWASocket,
     useMultiFileAuthState,
@@ -18,9 +19,9 @@ const {
     Browsers
 } = require('@whiskeysockets/baileys');
 
-function removeFile(filePath) {
-    if (!fs.existsSync(filePath)) return false;
-    fs.rmSync(filePath, { recursive: true, force: true });
+function removeFile(FilePath) {
+    if (!fs.existsSync(FilePath)) return false;
+    fs.rmSync(FilePath, { recursive: true, force: true });
 }
 
 // ─── PAIR CODE ───────────────────────────────────────────────
@@ -29,9 +30,9 @@ router.get('/pair', async (req, res) => {
     let num = req.query.number;
     if (!num) return res.json({ error: 'Numéro requis' });
 
-    const tempDir = path.join(process.cwd(), 'temp_session', id);
+    const tempDir = './temp_session/' + id;
 
-    async function PAIR() {
+    async function ITACHI_PAIR() {
         const { state, saveCreds } = await useMultiFileAuthState(tempDir);
         try {
             let sock = makeWASocket({
@@ -44,15 +45,16 @@ router.get('/pair', async (req, res) => {
                 },
                 printQRInTerminal: false,
                 logger: pino({ level: 'fatal' }).child({ level: 'fatal' }),
-                browser: Browsers.macOS('Safari'),
+                browser: Browsers.macOS('Chrome')
             });
 
             if (!sock.authState.creds.registered) {
                 await delay(1500);
                 num = num.replace(/[^0-9]/g, '');
                 const code = await sock.requestPairingCode(num);
-                const formatted = code?.match(/.{1,4}/g)?.join('-') || code;
-                if (!res.headersSent) res.json({ code: formatted });
+                if (!res.headersSent) {
+                    await res.send({ code });
+                }
             }
 
             sock.ev.on('creds.update', saveCreds);
@@ -61,9 +63,9 @@ router.get('/pair', async (req, res) => {
                 const { connection, lastDisconnect } = s;
 
                 if (connection === 'open') {
-                    await delay(3000);
+                    await delay(5000);
 
-                    // Copier session dans ./session du bot
+                    // ✅ Copier session dans ./session du bot
                     const sessionDir = path.join(process.cwd(), 'session');
                     if (!fs.existsSync(sessionDir)) {
                         fs.mkdirSync(sessionDir, { recursive: true });
@@ -77,48 +79,65 @@ router.get('/pair', async (req, res) => {
                     }
 
                     global.botConnected = true;
-                    console.log('✅ Session connectée ! Bot prêt.');
+                    console.log('✅ Bot connecté ! Session copiée.');
 
-                    if (global.botRestart) global.botRestart();
+                    let MSG = `
+╭━━━━━━━━━━━━━━━━━━━━━━╮
+┃   🥷 ITACHI-XMD V2.0 🥷   ┃
+┃   ✦ by CENTRAL-HEX ✦    ┃
+╰━━━━━━━━━━━━━━━━━━━━━━╯
 
-                    await delay(500);
+✅ *BOT CONNECTÉ AVEC SUCCÈS !*
+
+Ton bot ITACHI-XMD est maintenant en ligne.
+Tape *.menu* pour voir toutes les commandes.
+
+━━━━━━━━━━━━━━━━━━━━━━━
+
+💎 CENTRAL-HEX — Où la technologie rencontre la créativité. 🚀
+https://whatsapp.com/channel/0029VbC8YkY7oQhiOiiSpy1z`;
+
+                    await sock.sendMessage(sock.user.id, { text: MSG });
+                    await delay(100);
                     await sock.ws.close();
-                    removeFile(tempDir);
-                    return;
-                }
+                    return await removeFile(tempDir);
 
-                if (
+                } else if (
                     connection === 'close' &&
-                    lastDisconnect?.error?.output?.statusCode !== 401
+                    lastDisconnect &&
+                    lastDisconnect.error &&
+                    lastDisconnect.error.output.statusCode != 401
                 ) {
-                    await delay(5000);
-                    PAIR();
+                    await delay(10000);
+                    ITACHI_PAIR();
                 }
             });
 
         } catch (err) {
             console.log('Pair error:', err.message);
-            removeFile(tempDir);
-            if (!res.headersSent) res.json({ code: 'Service indisponible' });
+            await removeFile(tempDir);
+            if (!res.headersSent) {
+                await res.send({ code: 'Service Currently Unavailable' });
+            }
         }
     }
 
-    return await PAIR();
+    return await ITACHI_PAIR();
 });
 
 // ─── QR CODE ─────────────────────────────────────────────────
 router.get('/qr', async (req, res) => {
     const id = makeid();
-    const tempDir = path.join(process.cwd(), 'temp_session', id);
+    const tempDir = './temp_session/' + id;
 
-    async function QR() {
+    async function ITACHI_QR() {
         const { state, saveCreds } = await useMultiFileAuthState(tempDir);
         try {
             let sock = makeWASocket({
                 auth: state,
                 printQRInTerminal: false,
                 logger: pino({ level: 'silent' }),
-                browser: Browsers.macOS('Safari'),
+                browser: Browsers.macOS('Desktop'),
             });
 
             sock.ev.on('creds.update', saveCreds);
@@ -126,13 +145,10 @@ router.get('/qr', async (req, res) => {
             sock.ev.on('connection.update', async (s) => {
                 const { connection, lastDisconnect, qr } = s;
 
-                if (qr) {
-                    const buf = await QRCode.toBuffer(qr);
-                    if (!res.headersSent) res.end(buf);
-                }
+                if (qr) await res.end(await QRCode.toBuffer(qr));
 
                 if (connection === 'open') {
-                    await delay(3000);
+                    await delay(5000);
 
                     const sessionDir = path.join(process.cwd(), 'session');
                     if (!fs.existsSync(sessionDir)) {
@@ -147,33 +163,47 @@ router.get('/qr', async (req, res) => {
                     }
 
                     global.botConnected = true;
-                    console.log('✅ Session connectée via QR !');
+                    console.log('✅ Bot connecté via QR !');
 
-                    if (global.botRestart) global.botRestart();
+                    let MSG = `
+╭━━━━━━━━━━━━━━━━━━━━━━╮
+┃   🥷 ITACHI-XMD V2.0 🥷   ┃
+┃   ✦ by CENTRAL-HEX ✦    ┃
+╰━━━━━━━━━━━━━━━━━━━━━━╯
 
-                    await delay(500);
+✅ *BOT CONNECTÉ AVEC SUCCÈS !*
+
+Ton bot ITACHI-XMD est maintenant en ligne.
+Tape *.menu* pour voir toutes les commandes.
+
+💎 CENTRAL-HEX — Où la technologie rencontre la créativité. 🚀`;
+
+                    await sock.sendMessage(sock.user.id, { text: MSG });
+                    await delay(100);
                     await sock.ws.close();
-                    removeFile(tempDir);
-                    return;
-                }
+                    return await removeFile(tempDir);
 
-                if (
+                } else if (
                     connection === 'close' &&
-                    lastDisconnect?.error?.output?.statusCode !== 401
+                    lastDisconnect &&
+                    lastDisconnect.error &&
+                    lastDisconnect.error.output.statusCode != 401
                 ) {
-                    await delay(5000);
-                    QR();
+                    await delay(10000);
+                    ITACHI_QR();
                 }
             });
 
         } catch (err) {
             console.log('QR error:', err.message);
-            if (!res.headersSent) res.json({ error: 'Service indisponible' });
-            removeFile(tempDir);
+            if (!res.headersSent) {
+                await res.json({ code: 'Service is Currently Unavailable' });
+            }
+            await removeFile(tempDir);
         }
     }
 
-    return await QR();
+    return await ITACHI_QR();
 });
 
 // ─── STATUS ──────────────────────────────────────────────────
